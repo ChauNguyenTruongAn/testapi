@@ -86,11 +86,14 @@ function AdminDashboard() {
     const fetchCategories = async () => {
       try {
         const response = await getCategoriesTree();
-        if (Array.isArray(response.data)) {
-          setCategories(response.data);
+        if (Array.isArray(response)) {
+          setCategories(response);
         }
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching categories:", error);
+        setError("Không thể tải danh mục. Vui lòng thử lại sau.");
+        setLoading(false);
       }
     };
 
@@ -320,8 +323,8 @@ function AdminDashboard() {
 
           // Refresh categories to get the updated data
           const refreshResponse = await getCategoriesTree();
-          if (Array.isArray(refreshResponse.data)) {
-            setCategories(refreshResponse.data);
+          if (Array.isArray(refreshResponse)) {
+            setCategories(refreshResponse);
           }
         }
       }
@@ -452,12 +455,50 @@ function AdminDashboard() {
       await createParentCategory(categoryData);
       // Refresh categories to get the updated data
       const refreshResponse = await getCategoriesTree();
-      if (Array.isArray(refreshResponse.data)) {
-        setCategories(refreshResponse.data);
+      if (Array.isArray(refreshResponse)) {
+        setCategories(refreshResponse);
       }
     } catch (error) {
       console.error("Error creating parent category:", error);
     }
+  };
+
+  const renderCategory = (category, level = 0) => {
+    const paddingLeft = level * 4; // 4 units of padding per level
+    return (
+      <div key={category.categoryId} className="mb-2">
+        <div
+          className={`flex items-center p-2 rounded-lg hover:bg-gray-50`}
+          style={{ paddingLeft: `${paddingLeft}rem` }}
+        >
+          <div className="flex-1">
+            <h3 className="font-medium text-gray-900">{category.name}</h3>
+            <p className="text-sm text-gray-500">{category.description}</p>
+          </div>
+          <div className="flex space-x-2">
+            <Link
+              to={`/edit-category/${category.categoryId}`}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              Sửa
+            </Link>
+            <button
+              onClick={() => handleDeleteCategory(category.categoryId)}
+              className="text-red-600 hover:text-red-800"
+            >
+              Xóa
+            </button>
+          </div>
+        </div>
+        {category.subcategories && category.subcategories.length > 0 && (
+          <div className="ml-4">
+            {category.subcategories.map((subcategory) =>
+              renderCategory(subcategory, level + 1)
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   if (loading)
@@ -1032,249 +1073,14 @@ function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          ID
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Tên danh mục
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Mô tả
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Loại
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Danh mục con
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Thao tác
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {categories.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan="6"
-                            className="px-6 py-4 text-center text-gray-500"
-                          >
-                            Không có danh mục nào. Hãy thêm danh mục mới!
-                          </td>
-                        </tr>
-                      ) : (
-                        categories.map((category) => (
-                          <>
-                            <tr
-                              key={category.categoryId}
-                              className={
-                                category.parentId === null
-                                  ? "bg-white"
-                                  : "bg-gray-50"
-                              }
-                            >
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {category.categoryId}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  {category.parentId === null &&
-                                    category.subcategories &&
-                                    category.subcategories.length > 0 && (
-                                      <button
-                                        onClick={() =>
-                                          toggleCategoryExpand(
-                                            category.categoryId
-                                          )
-                                        }
-                                        className="mr-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                                      >
-                                        {expandedCategories[
-                                          category.categoryId
-                                        ] ? (
-                                          <svg
-                                            className="h-4 w-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              strokeWidth={2}
-                                              d="M19 9l-7 7-7-7"
-                                            />
-                                          </svg>
-                                        ) : (
-                                          <svg
-                                            className="h-4 w-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              strokeWidth={2}
-                                              d="M9 5l7 7-7 7"
-                                            />
-                                          </svg>
-                                        )}
-                                      </button>
-                                    )}
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {category.parentId !== null && (
-                                      <span className="inline-block w-4 h-0 border-t border-gray-300 mr-2"></span>
-                                    )}
-                                    {category.name}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-500">
-                                  {category.description || "-"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span
-                                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                    category.parentId === null
-                                      ? "bg-purple-100 text-purple-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                                  }`}
-                                >
-                                  {category.parentId === null
-                                    ? "Danh mục cha"
-                                    : "Danh mục con"}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-500">
-                                  {category.subcategories &&
-                                  category.subcategories.length > 0
-                                    ? category.subcategories.length
-                                    : "-"}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button
-                                  className="text-blue-600 hover:text-blue-900 mr-3"
-                                  onClick={() =>
-                                    openEditCategoryModal(category)
-                                  }
-                                >
-                                  Sửa
-                                </button>
-                                <button
-                                  className="text-red-600 hover:text-red-900"
-                                  onClick={() =>
-                                    handleDeleteCategory(category.categoryId)
-                                  }
-                                >
-                                  Xóa
-                                </button>
-                                {category.parentId === null && (
-                                  <button
-                                    className="text-green-600 hover:text-green-900 ml-3"
-                                    onClick={() => {
-                                      openAddCategoryModal(false);
-                                      setCategoryParentId(
-                                        category.categoryId.toString()
-                                      );
-                                    }}
-                                  >
-                                    + Thêm con
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-
-                            {/* Show child categories when parent is expanded */}
-                            {category.parentId === null &&
-                              expandedCategories[category.categoryId] &&
-                              category.subcategories &&
-                              category.subcategories.map((subcat) => (
-                                <tr
-                                  key={`subcat-${subcat.categoryId}`}
-                                  className="bg-gray-50"
-                                >
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">
-                                      {subcat.categoryId}
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
-                                      <div className="ml-5 text-sm font-medium text-gray-900">
-                                        <span className="inline-block w-4 h-0 border-t border-gray-300 mr-2"></span>
-                                        {subcat.name}
-                                      </div>
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-500">
-                                      {subcat.description || "-"}
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                      Danh mục con
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-500">
-                                      -
-                                    </div>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button
-                                      className="text-blue-600 hover:text-blue-900 mr-3"
-                                      onClick={() =>
-                                        openEditCategoryModal(subcat)
-                                      }
-                                    >
-                                      Sửa
-                                    </button>
-                                    <button
-                                      className="text-red-600 hover:text-red-900"
-                                      onClick={() =>
-                                        handleDeleteCategory(subcat.categoryId)
-                                      }
-                                    >
-                                      Xóa
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                          </>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                <div className="space-y-4">
+                  {categories.length > 0 ? (
+                    categories.map((category) => renderCategory(category))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">
+                      Chưa có danh mục nào được tạo.
+                    </p>
+                  )}
                 </div>
               </div>
             )}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getArticles } from "../api";
+import { getLatestArticles, getHotArticles } from "../api";
 
 function HomePage() {
   const [featuredArticles, setFeaturedArticles] = useState([]);
@@ -11,26 +11,16 @@ function HomePage() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        // Lấy bài viết nổi bật
-        const featuredResponse = await getArticles({
-          featured: true,
-          size: 5,
-        });
-        setFeaturedArticles(featuredResponse.data.content);
-
-        // Lấy bài viết hot (có nhiều lượt xem)
-        const hotResponse = await getArticles({
-          sort: "viewCount,desc",
-          size: 4,
-        });
+        // Lấy bài viết hot
+        const hotResponse = await getHotArticles();
         setHotArticles(hotResponse.data.content);
 
         // Lấy bài viết mới nhất
-        const latestResponse = await getArticles({
-          sort: "createdAt,desc",
-          size: 8,
-        });
+        const latestResponse = await getLatestArticles();
         setLatestArticles(latestResponse.data.content);
+
+        // Lấy bài viết nổi bật (lấy 5 bài viết đầu tiên từ danh sách mới nhất)
+        setFeaturedArticles(latestResponse.data.content.slice(0, 5));
 
         setLoading(false);
       } catch (error) {

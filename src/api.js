@@ -231,4 +231,16 @@ export const getStats = async () => {
   }
 };
 
+// Latest articles API
+export const getLatestArticles = (page = 0, size = 10, sort = 'title') =>
+  api.get(`/api/articles/latest?page=${page}&size=${size}&sort=${sort}`);
+
+// Hot articles API
+export const getHotArticles = (page = 0, size = 9, sort = 'title') =>
+  api.get(`/api/articles/hot?page=${page}&size=${size}&sort=${sort}`);
+
+// Related articles API
+export const getRelatedArticles = (articleId, page = 0, size = 3, sort = 'title') =>
+  api.get(`/api/articles/category/${articleId}?page=${page}&size=${size}&sort=${sort}`);
+
 export default api;

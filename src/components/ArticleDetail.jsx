@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { getArticleById } from "../api";
+import { getArticleById, getRelatedArticles } from "../api";
 import ArticleImage from "./ArticleImage";
 import CommentSection from "./CommentSection";
 import FavoriteButton from "./FavoriteButton";
@@ -29,32 +29,21 @@ function ArticleDetail() {
         setArticle(response.data);
         setLoading(false);
 
-        // Giả lập bài viết liên quan - trong thực tế nên có API riêng
-        if (response.data && response.data.category) {
-          // Giả sử có 3 bài viết liên quan
-          setRelatedArticles([
-            {
-              articleId: "related1",
-              title: "Bài viết liên quan 1",
-              summary: "Tóm tắt bài viết liên quan 1",
-              thumbnailUrl: "https://via.placeholder.com/300x200",
-              createdAt: new Date().toISOString(),
-            },
-            {
-              articleId: "related2",
-              title: "Bài viết liên quan 2",
-              summary: "Tóm tắt bài viết liên quan 2",
-              thumbnailUrl: "https://via.placeholder.com/300x200",
-              createdAt: new Date().toISOString(),
-            },
-            {
-              articleId: "related3",
-              title: "Bài viết liên quan 3",
-              summary: "Tóm tắt bài viết liên quan 3",
-              thumbnailUrl: "https://via.placeholder.com/300x200",
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+        // Lấy bài viết liên quan từ cùng danh mục
+        if (response.data.category) {
+          try {
+            const relatedResponse = await getRelatedArticles(
+              response.data.category.categoryId
+            );
+            // Lọc bỏ bài viết hiện tại khỏi danh sách liên quan
+            const filteredRelated = relatedResponse.data.content.filter(
+              (related) => related.articleId !== parseInt(articleId)
+            );
+            setRelatedArticles(filteredRelated);
+          } catch (error) {
+            console.error("Error fetching related articles:", error);
+            setRelatedArticles([]);
+          }
         }
       } catch (error) {
         console.error("Error fetching article:", error);
