@@ -6,7 +6,7 @@ import {
   updateArticle,
   createArticle,
   getTags,
-  getCategories,
+  getCategoriesTree,
 } from "../api";
 import axios from "axios";
 import "./ArticleEditor.css";
@@ -139,8 +139,8 @@ function EditArticle() {
 
   const fetchCategories = async () => {
     try {
-      const response = await getCategories();
-      setCategories(response.data || []);
+      const response = await getCategoriesTree();
+      setCategories(response || []);
     } catch (err) {
       console.error("Error loading categories:", err);
       setError("Không thể tải danh sách danh mục");
