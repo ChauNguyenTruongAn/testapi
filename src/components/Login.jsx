@@ -1,22 +1,22 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 function Login() {
   const location = useLocation();
-  const navigate = useNavigate();
   const error = location.state?.error;
+  const from = location.state?.from || "/";
 
   const handleGoogleLogin = () => {
     const clientId =
       "252893217133-7br4o5fnn1l5sosa8gth0ndij3f6pg35.apps.googleusercontent.com";
-    const redirectUri = "http://localhost:8080/api/auth/google-callback"; // Giữ nguyên redirect về backend
+    const redirectUri = "http://localhost:8080/api/auth/google-callback";
     const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${encodeURIComponent(
       clientId
     )}&redirect_uri=${encodeURIComponent(
       redirectUri
     )}&response_type=code&scope=openid%20email%20profile`;
 
-    // Lưu trang trước đó
-    navigate(location.pathname, { state: { from: location.pathname } });
+    // Lưu trang trước đó vào sessionStorage
+    sessionStorage.setItem("redirect_after_login", from);
     window.location.href = authUrl;
   };
 

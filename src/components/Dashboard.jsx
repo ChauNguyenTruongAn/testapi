@@ -1,102 +1,100 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getArticles, deleteArticle } from "../api";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { getArticles } from "../api";
+import ArticleImage from "./ArticleImage";
 
 function Dashboard() {
   const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem("access_token");
-  const role = localStorage.getItem("role");
 
   useEffect(() => {
-    getArticles()
-      .then((response) => setArticles(response.data.content || []))
-      .catch((err) => setError("Failed to fetch articles."));
+    const fetchArticles = async () => {
+      try {
+        console.log("Fetching articles...");
+        const response = await getArticles();
+        console.log("Articles API response:", response.data);
+
+        // Check if the response has a content field (pagination format)
+        if (response.data && response.data.content) {
+          setArticles(response.data.content);
+        } else if (Array.isArray(response.data)) {
+          setArticles(response.data);
+        } else {
+          console.error("Unexpected API response format:", response.data);
+          setArticles([]);
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching articles:", err);
+        setError("Không thể tải danh sách bài viết");
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
   }, []);
 
-  const handleDelete = (id) => {
-    if (confirm("Are you sure?")) {
-      deleteArticle(id)
-        .then(() => setArticles(articles.filter((a) => a.articleId !== id)))
-        .catch((err) => setError("Failed to delete article."));
-    }
-  };
+  if (loading) return <div className="text-center py-8">Đang tải...</div>;
+  if (error)
+    return <div className="text-red-500 text-center py-8">{error}</div>;
+  if (articles.length === 0)
+    return <div className="text-center py-8">Chưa có bài viết nào</div>;
 
   return (
-    <div className="pt-20 pb-8">
-      <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-bold mb-6">
-          {role === "admin" && window.location.pathname === "/dashboard" ? "Admin Dashboard" : "Latest News"}
-        </h2>
-        {!isAuthenticated && (
-          <div className="bg-blue-100 p-4 rounded mb-6">
-            Please{" "}
-            <button
-              onClick={() => navigate("/login", { state: { from: window.location.pathname } })}
-              className="text-blue-600 underline"
-            >
-              login
-            </button>{" "}
-            to access more features.
-          </div>
-        )}
-        {error && <div className="bg-red-100 p-4 rounded mb-6 text-red-700">{error}</div>}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
-            {articles.length > 0 ? (
-              articles.map((article) => (
-                <div
-                  key={article.articleId}
-                  className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition mb-4"
-                >
-                  <h3 className="text-lg font-semibold">{article.title}</h3>
-                  <p className="text-gray-600">{article.summary || "No summary available."}</p>
-                  <div className="mt-2 space-x-2">
-                    <button
-                      onClick={() => navigate(`/article/${article.articleId}`)}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Read More
-                    </button>
-                    {isAuthenticated && role === "admin" && (
-                      <>
-                        <button
-                          onClick={() => navigate(`/edit-article/${article.articleId}`)}
-                          className="text-green-600 hover:underline"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(article.articleId)}
-                          className="text-red-600 hover:underline"
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No articles available.</p>
-            )}
-          </div>
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Featured Articles</h4>
-            {articles.slice(0, 3).map((article) => (
-              <div key={article.articleId} className="bg-white p-4 rounded-lg shadow-md mb-4">
-                <h5 className="text-md font-medium">{article.title}</h5>
-                <button
-                  onClick={() => navigate(`/article/${article.articleId}`)}
-                  className="text-blue-600 hover:underline"
-                >
-                  Read More
-                </button>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Quản lý bài viết</h1>
+        <Link
+          to="/add-article"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Thêm bài viết mới
+        </Link>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {articles.map((article) => (
+          <div
+            key={article.articleId}
+            className="bg-white rounded-lg shadow-md overflow-hidden"
+          >
+            {article.imageUrl && (
+              <div className="relative w-full h-48">
+                <ArticleImage
+                  imageUrl={article.imageUrl}
+                  thumbnailUrl={article.thumbnailUrl}
+                  alt={article.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
-            ))}
+            )}
+            <div className="p-4">
+              <h2 className="text-xl font-semibold mb-2">
+                <Link
+                  to={`/article/${article.articleId}`}
+                  className="hover:text-blue-600"
+                >
+                  {article.title}
+                </Link>
+              </h2>
+              <p className="text-gray-600 mb-4">{article.summary}</p>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500">
+                  {new Date(article.createdAt).toLocaleDateString()}
+                </span>
+                <div className="space-x-2">
+                  <Link
+                    to={`/edit-article/${article.articleId}`}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Chỉnh sửa
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );
