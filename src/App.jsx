@@ -15,16 +15,21 @@ import Dashboard from "./components/Dashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import EditorDashboard from "./components/EditorDashboard";
 import Callback from "./components/Callback";
+import ExternalRedirect from "./components/ExternalRedirect";
 import Category from "./components/Category";
 import Categories from "./components/Categories";
 import ReadingHistoryPage from "./components/ReadingHistoryPage";
 import FavoritesPage from "./components/FavoritesPage";
 import CategoriesPage from "./components/CategoriesPage";
+import { URLs } from "./api";
 
 function App() {
+  // Lấy Google Client ID từ biến môi trường
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
   return (
     <AuthProvider>
-      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <GoogleOAuthProvider clientId={googleClientId}>
         <BrowserRouter
           future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
         >
@@ -44,6 +49,14 @@ function App() {
                 <Route
                   path="/api/auth/google-callback"
                   element={<Callback />}
+                />
+                <Route
+                  path="https://stunews.static.domains/callback"
+                  element={<Callback />}
+                />
+                <Route
+                  path="/redirect-from-external"
+                  element={<ExternalRedirect />}
                 />
                 <Route path="/categories" element={<CategoriesPage />} />
                 <Route path="/category/:category" element={<Category />} />

@@ -1,4 +1,5 @@
 import { useLocation } from "react-router-dom";
+import { URLs } from "../api";
 
 function Login() {
   const location = useLocation();
@@ -6,14 +7,20 @@ function Login() {
   const from = location.state?.from || "/";
 
   const handleGoogleLogin = () => {
-    const clientId =
-      "252893217133-7br4o5fnn1l5sosa8gth0ndij3f6pg35.apps.googleusercontent.com";
-    const redirectUri = "http://localhost:8080/api/auth/google-callback";
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const redirectUri =
+      import.meta.env.VITE_GOOGLE_CALLBACK_URL ||
+      `${URLs.BACKEND_URL}/api/auth/google-callback`;
+    const callbackUrl = import.meta.env.VITE_CALLBACK_URL || URLs.CALLBACK_URL;
+
+    // Build the auth URL with all parameters
     const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${encodeURIComponent(
       clientId
     )}&redirect_uri=${encodeURIComponent(
       redirectUri
-    )}&response_type=code&scope=openid%20email%20profile`;
+    )}&response_type=code&scope=openid%20email%20profile&state=${encodeURIComponent(
+      callbackUrl
+    )}`;
 
     // Lưu trang trước đó vào sessionStorage
     sessionStorage.setItem("redirect_after_login", from);

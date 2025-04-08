@@ -55,9 +55,7 @@ function Navigation() {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold text-blue-600">
-              News Portal
-            </span>
+            <span className="text-2xl font-bold text-blue-600">News</span>
           </Link>
 
           {/* User Menu */}

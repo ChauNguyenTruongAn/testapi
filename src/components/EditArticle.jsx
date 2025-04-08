@@ -71,7 +71,7 @@ function EditArticle() {
       }
 
       const response = await axios.post(
-        "http://localhost:8080/api/auth/refresh",
+        import.meta.env.VITE_BACKEND_URL,
         {},
         {
           headers: {
@@ -220,7 +220,7 @@ function EditArticle() {
 
       // Use axios directly to bypass our API wrapper for this special case
       axios
-        .post("http://localhost:8080/upload-image", formData, {
+        .post(`${import.meta.env.VITE_BACKEND_URL}/upload-image`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,

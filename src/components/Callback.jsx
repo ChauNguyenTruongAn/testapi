@@ -42,6 +42,7 @@ function Callback() {
 
     if (accessToken && role) {
       console.log("Login successful, saving user data");
+      // Lưu token vào localStorage để sử dụng cho các API call sau này
       localStorage.setItem("access_token", accessToken);
       localStorage.setItem("role", role);
 

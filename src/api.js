@@ -1,7 +1,12 @@
 import axios from "axios";
 
+// Lấy các URL từ biến môi trường
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:3000';
+const CALLBACK_URL = import.meta.env.VITE_CALLBACK_URL || `${FRONTEND_URL}/callback`;
+
 const api = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: BACKEND_URL,
   withCredentials: true,
 });
 
@@ -31,6 +36,17 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Export các URL cho việc sử dụng ở các component khác
+export const URLs = {
+  BACKEND_URL,
+  FRONTEND_URL,
+  CALLBACK_URL,
+  LOGIN_URL: `${BACKEND_URL}/api/auth/login`,
+  REGISTER_URL: `${BACKEND_URL}/api/auth/register`,
+  GOOGLE_AUTH_URL: `${BACKEND_URL}/api/auth/google`,
+  UPLOAD_IMAGE_URL: `${BACKEND_URL}/upload-image`,
+};
 
 export const getArticles = () => api.get("/api/articles?page=0&size=10");
 
@@ -94,30 +110,16 @@ export const unpublishArticle = (articleId) => api.put(`/api/admin/articles/${ar
 export const getAdminArticles = (page = 0, size = 10, sort = 'title') => 
   api.get(`/api/admin/articles?page=${page}&size=${size}&sort=${sort}`);
 
-export const uploadImage = (imageData) => {
-  console.log("Calling upload image API...");
-  
-  // Convert base64 string to a blob
-  const base64Response = fetch(imageData);
-  return base64Response.then(res => res.blob()).then(blob => {
-    // Create FormData and append file
-    const formData = new FormData();
-    formData.append('file', blob, 'image.jpg');
-    
-    // Send as multipart/form-data
-    return api.post('/upload-image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-  })
-  .then(response => {
-    console.log("Image upload successful, response:", response);
-    return response;
-  })
-  .catch(error => {
-    console.error("Error in uploadImage API call:", error);
-    throw error;
+export const uploadImage = (file) => {
+  console.log("Uploading image to server...");
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return axios.post(URLs.UPLOAD_IMAGE_URL, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+    },
   });
 };
 

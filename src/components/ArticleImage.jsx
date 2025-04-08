@@ -93,7 +93,7 @@ const ArticleImage = ({
 
       // Use axios directly to ensure correct content type
       const response = await axios.post(
-        "http://localhost:8080/upload-image",
+        baseUrl,
         formData,
         {
           headers: {
